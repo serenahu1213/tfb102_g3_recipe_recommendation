@@ -1,0 +1,49 @@
+{
+    "richMenuId": "richmenu-b3a10748d440a91dca2c3a5321e1747f",
+    "name": "recommender",
+    "size": {
+        "width": 2500,
+        "height": 843
+    },
+    "chatBarText": "食譜推薦",
+    "selected": false,
+    "areas": [
+        {
+            "bounds": {
+                "x": 211,
+                "y": 110,
+                "width": 633,
+                "height": 629
+            },
+            "action": {
+                "type": "message",
+                "text": "清冰箱模式"
+            }
+        },
+        {
+            "bounds": {
+                "x": 1014,
+                "y": 106,
+                "width": 468,
+                "height": 620
+            },
+            "action": {
+                "type": "richmenuswitch",
+                "data": "richmenu-changed-to-home",
+                "richMenuAliasId": "richmenu-alias-home"
+            }
+        },
+        {
+            "bounds": {
+                "x": 1660,
+                "y": 106,
+                "width": 637,
+                "height": 629
+            },
+            "action": {
+                "type": "message",
+                "text": "關鍵字模式"
+            }
+        }
+    ]
+}

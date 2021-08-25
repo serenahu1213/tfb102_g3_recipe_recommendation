@@ -1,0 +1,50 @@
+{
+    "richMenuId": "richmenu-88f383c8ae5d3bd4a3aeb35af276240f",
+    "name": "main",
+    "size": {
+        "width": 2500,
+        "height": 843
+    },
+    "chatBarText": "功能選單",
+    "selected": false,
+    "areas": [
+        {
+            "bounds": {
+                "x": 115,
+                "y": 115,
+                "width": 625,
+                "height": 629
+            },
+            "action": {
+                "type": "richmenuswitch",
+                "data": "richmenu-changed-to-fridge",
+                "richMenuAliasId": "richmenu-alias-fridge"
+            }
+        },
+        {
+            "bounds": {
+                "x": 916,
+                "y": 114,
+                "width": 625,
+                "height": 621
+            },
+            "action": {
+                "type": "richmenuswitch",
+                "data": "richmenu-changed-to-recomm",
+                "richMenuAliasId": "richmenu-alias-recomm"
+            }
+        },
+        {
+            "bounds": {
+                "x": 1720,
+                "y": 120,
+                "width": 625,
+                "height": 621
+            },
+            "action": {
+                "type": "uri",
+                "uri": "https://www.google.com/"
+            }
+        }
+    ]
+}

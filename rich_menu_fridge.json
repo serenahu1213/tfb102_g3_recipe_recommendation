@@ -1,0 +1,49 @@
+{
+    "richMenuId": "richmenu-566c992d495b94065ad87601ec49deca",
+    "name": "fridge",
+    "size": {
+        "width": 2500,
+        "height": 843
+    },
+    "chatBarText": "智能冰箱",
+    "selected": false,
+    "areas": [
+        {
+            "bounds": {
+                "x": 207,
+                "y": 110,
+                "width": 625,
+                "height": 621
+            },
+            "action": {
+                "type": "message",
+                "text": "查看冰箱"
+            }
+        },
+        {
+            "bounds": {
+                "x": 984,
+                "y": 114,
+                "width": 532,
+                "height": 617
+            },
+            "action": {
+                "type": "richmenuswitch",
+                "data": "richmenu-changed-to-home",
+                "richMenuAliasId": "richmenu-alias-home"
+            }
+        },
+        {
+            "bounds": {
+                "x": 1650,
+                "y": 105,
+                "width": 655,
+                "height": 629
+            },
+            "action": {
+                "type": "message",
+                "text": "上傳圖片"
+            }
+        }
+    ]
+}
