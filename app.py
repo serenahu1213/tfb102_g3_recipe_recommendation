@@ -1,8 +1,10 @@
-from flask import Flask, request, abort
+from flask import Flask, request, abort, render_template
 
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import *
+
+from ast import literal_eval
 
 import pymysql
 
@@ -12,7 +14,7 @@ from check_inventory import *
 from deposit import *
 from call_md import *
 from check_recipe_ingredient import *
-
+from jaccard_similarity_recommender import *
 
 import tempfile, os, random, string
 import datetime
@@ -21,19 +23,43 @@ import re
 
 
 app = Flask(__name__)
-line_bot_api = LineBotApi('XBKs4QPm4vfsX0qxZd2pyhZMEYVBs1xbv8e+Z4mPRDzK2OqJ4UWVY3g3nUiDgP5iebaaN7xFb8Ks561E8EzAt4hbAozzbHsRMOJXS6eLeUYsEN28bASr13bru49B23xUzBMWeuh1N7vLUBZuCYFXZQdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('6538f1908ff5877945040220adaa8253')
+line_bot_api = LineBotApi('Dlow55NwMhUOqXBgYlZuekbQ9nvZLJd/M7SR1SNIDN/t/hYYD8kV1hILjwb2irfVRZTGiBzdquXcdNPTe8uBHXUe1yl1qB6tTOpv/u+CPsx58YwuGEM1yRkqyS98beU5DAUhjACw5R+vSizOV4UorwdB04t89/1O/w1cDnyilFU=')
+handler = WebhookHandler('1ee56998faf23a84ff21c58a9e829d02')
 image_tmp_path = os.path.join(os.getcwd(), 'static').replace('\\','/')
 
 connect = pymysql.connect(
                 host="127.0.0.1",
-                user="root",
-                passwd="root",
+                user="spark",
+                passwd="1qaz@wsX",
+                port=3306,
                 database="recipe_db",
                 charset='utf8mb4',
         )
 
 cursor = connect.cursor()
+
+def save_recomm_dishIDs(user_id, dishIDs):
+    cursor.execute(f'select * from recommened_dishIDs where user_id = "{user_id}"')
+    result = cursor.fetchall()
+
+    if len(result) == 0:
+        command = f'insert into recommened_dishIDs (user_id, dishIDs) values ("{user_id}", "{dishIDs}")'
+        cursor.execute(command)
+        connect.commit()
+
+    else:
+        command = f'update recommened_dishIDs set dishIDs = "{dishIDs}" WHERE user_id = "{user_id}"'
+        cursor.execute(command)
+        connect.commit()
+
+        
+def load_recomm_dishIDs(user_id):
+    cursor.execute(f'select * from recommened_dishIDs where user_id = "{user_id}"')
+    dishIDs = cursor.fetchall()[0][1]
+    dishIDs = literal_eval(dishIDs)
+        
+    return dishIDs
+
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -53,19 +79,16 @@ def callback():
         abort(400)
     return 'OK'
 
-        
-        
-       
-
 @handler.add(MessageEvent, message=[TextMessage, ImageMessage])
-def handle_message(event):
+def handle_message_1(event):
+    
     user_id = event.source.user_id
     user_name = line_bot_api.get_profile(user_id).display_name
     print(user_id)
     print(user_name)
     
     # for testing purpose
-    dishIDs = [13962, 13966, 13981, 14004, 14005]
+#     dishIDs = [13962, 13966, 13981, 14004, 14005]
 
     if event.message.type=='text':
         msg = event.message.text
@@ -73,13 +96,79 @@ def handle_message(event):
         if msg in ['哈囉', '你好']:
             text='哈囉~ 歡迎使用食譜底呷啦！\n請至功能選單中填寫喜好問卷，讓我們為您推薦最適合您的菜色 :)'
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=text))
-
             
+            # =========================================================
+            try:
+#              # 連接MySQL
+#              def get_conn():
+#                  return pymysql.connect(
+#                      host='127.0.0.1',
+#                      user='spark',
+#                      passwd='1qaz@wsX',
+#                      port=3306,
+#                      db='recipe_db',
+#                      charset='utf8'
+#              )
+#              # insert
+                def insert_or_update_data(sql):
+                    conn = connect
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(sql)
+                        conn.commit()
+                    finally:
+                        print('OK MySQL')
+                # 填寫標單 ngrok+/cooklike 網址
+                @app.route("/cooklike", methods=['GET'])
+                def cookuser():
+                    user = user_name #參數帶進去HTML
+                    userid = user_id
+
+                    return render_template("cooklike-01.html",user_Id = user, name_Id = userid)
+            
+                # 完成填寫表單，寫進MySQL
+                @app.route("/do_add_user", methods=["POST"])
+                def do_add_user():
+                    print(request.form)
+                    name = request.form.get("name")
+                    like1 = int(request.form.get("like1"))
+                    like2 = int(request.form.get("like2"))
+                    like3 = int(request.form.get("like3"))
+                    like4 = int(request.form.get("like4"))
+                    like5 = int(request.form.get("like5"))
+                    like6 = int(request.form.get("like6"))
+                    like7 = int(request.form.get("like7"))
+                    like8 = int(request.form.get("like8"))
+                    like9 = int(request.form.get("like9"))
+                    like10 = int(request.form.get("like10"))
+            
+                    cluster0 = (like1+like2)
+                    cluster1 = (like3+like4)
+                    cluster2 = (like5+like6)
+                    cluster3 = (like7+like8)
+                    cluster4 = (like9+like10)
+            
+                    sql = f"""
+                        insert into user_scores (name, cluster_0, cluster_1, cluster_2, cluster_3, cluster_4)
+                        values ('{name}', '{cluster0}', '{cluster1}', '{cluster2}', '{cluster3}', '{cluster4}')
+                    """
+                    insert_or_update_data(sql)
+                    print(sql)
+                    return "已完成填寫"
+            finally:
+                print("OK")
+            # =========================================================           
         elif msg == '清冰箱模式':
             """
             code that can turn all ingres into a list
             """
+            inventory = check_inventory(user_id)
+            input_list = [_[0] for _ in inventory]
+
+            dishIDs = recommender(input_list, user_id, 2)
             
+            save_recomm_dishIDs(user_id, dishIDs)
+
             """
             connect to recipe recommendation system
             - the input will be a list of undefined length of ingredients, e.g. ingres = ['麵粉', '奶油', '蘋果']
@@ -98,7 +187,12 @@ def handle_message(event):
             """
             code that can turn all ingres into a list
             """
-            
+            input_list = [_ for _ in msg.split(' ')[0:-1]]
+
+            dishIDs = recommender(input_list, user_id, 2)
+           
+            save_recomm_dishIDs(user_id, dishIDs)
+
             """
             connect to recipe recommendation system
             - the input will be a list of undefined length of ingredients, e.g. ingres = ['麵粉', '奶油', '蘋果']
@@ -116,7 +210,10 @@ def handle_message(event):
             - the input will be a list of undefined length of ingredients, e.g. ingres = ['麵粉', '奶油', '蘋果']
             - the output should be a list of 5 dishIDs, e.g. dishIDs = [13962, 13966, 13981, 14004, 14005]
             """
+            dishIDs = load_recomm_dishIDs(user_id)
+
             recommRecipes = recommAll(dishIDs)
+
             
             if str(recommRecipes[0][1]) in msg:
                 inventory_check = check_recipe_ingredient(recommRecipes[0][0],user_id)
@@ -132,7 +229,7 @@ def handle_message(event):
 
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=text))
 
-            elif str(recommRecipes[1][1]) in msg:        
+            elif str(recommRecipes[1][1]) in msg:
                 inventory_check = check_recipe_ingredient(recommRecipes[1][0],user_id)
 
                 text = '需要以下食材: \n\n'+str(recommRecipes[1][3])
@@ -195,6 +292,9 @@ def handle_message(event):
             - the input will be a list of undefined length of ingredients, e.g. ingres = ['麵粉', '奶油', '蘋果']
             - the output should be a list of 5 dishIDs, e.g. dishIDs = [13962, 13966, 13981, 14004, 14005]
             """
+
+            dishIDs = load_recomm_dishIDs(user_id)
+
             recommRecipes = recommAll(dishIDs)
             
             if str(recommRecipes[0][1]) in msg:
@@ -277,8 +377,12 @@ def handle_message(event):
 
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=text))
             
-        elif msg == '上傳圖片': 
-            text='請上傳您的食材圖片'
+        elif msg == '上傳食材照片': 
+            text='請上傳您的食材照片'
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=text))
+            
+        elif msg == '輸入食材名稱': 
+            text='請輸入正確食材名稱及重量(g)，並以空白鍵隔開\n\n例如: 番茄 100g'
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=text))
             
         elif msg == '是':
@@ -312,11 +416,22 @@ def handle_message(event):
             """
             text = f'已將食材放入冰箱:\n{ing}:{amount}'
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=text))
+            
+        elif re.match(r'^[\u4E00-\u9FA5]+\s-\d+g$', msg):
+            msg = msg.split(' ')
+            ing = msg[0]
+            amount = float(msg[1].replace('g',''))
+            deposit_ing(user_id,ing,amount)
+            """
+            code that can calculate the remaining amount in fridge
+            """
+            text = f'deleted'
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=text))
                 
         else:
             text = '無法辨識您的需求，請再輸入一次~'
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=text))
-            
+                    
             
     elif event.message.type=='image':
         img_msg = event.message.id
@@ -328,7 +443,6 @@ def handle_message(event):
         with open(image_path, 'wb') as fd:
             for chunk in message_content.iter_content():
                 fd.write(chunk)
-                
         start_time = time.time()    
         result = call_md(image_path)
         end_time = time.time()
@@ -370,4 +484,4 @@ def postback_event(event):
         
 # run app
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=os.environ['PORT'])
+    app.run(host='127.0.0.1', port=12345)

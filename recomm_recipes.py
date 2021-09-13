@@ -12,8 +12,8 @@ def recommOne(dishID):
     conn = pymysql.connect(
                     host="127.0.0.1",
                     port=3306,
-                    user="root",
-                    passwd="root",
+                    user="spark",
+                    passwd="1qaz@wsX",
                     database="recipe_db",
                     charset='utf8mb4'
             )

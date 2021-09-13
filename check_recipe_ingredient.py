@@ -5,9 +5,10 @@ import tempfile, os, random, string
 def check_recipe_ingredient(dishid,uuid):
 
     connection = pymysql.connect(host='localhost',
-                             user='root',
-                             password='root',
+                             user='spark',
+                             password='1qaz@wsX',
                              database='recipe_db',
+                             port=3306,
                              cursorclass=pymysql.cursors.DictCursor)
     cursor=connection.cursor()
 
@@ -20,7 +21,7 @@ def check_recipe_ingredient(dishid,uuid):
                 ON (r1.uuid = r2.uuid and r1.ingredientID = r2.ingredientID and r1.id < r2.id) \
                     join ingredient_info i on r1.ingredientID = i.ingredientID \
                         where (r1.uuid = "{uuid}") and (r2.id IS NULL) and (r1.total_amount>0)) S1 \
-                            LEFT JOIN (SELECT DISHID, INGREDIENTID FROM RECIPE_INGREDIENT WHERE DISHID = {dishid}) S2 ON S1.INGREDIENTID=S2.INGREDIENTID \
+                            LEFT JOIN (SELECT DISHID, INGREDIENTID FROM recipe_ingredient WHERE DISHID = {dishid}) S2 ON S1.INGREDIENTID=S2.INGREDIENTID \
                                 UNION \
                                     SELECT S1.INGREDIENTID fi , S2.INGREDIENTID ri FROM \
                                         (SELECT r1.uuid, r1.ingredientID ,i.ingredientName, r1.total_amount \
@@ -28,7 +29,7 @@ def check_recipe_ingredient(dishid,uuid):
                                                 ON (r1.uuid = r2.uuid and r1.ingredientID = r2.ingredientID and r1.id < r2.id) \
                                                     join ingredient_info i on r1.ingredientID = i.ingredientID \
                                                         where (r1.uuid = "{uuid}") and (r2.id IS NULL) and (r1.total_amount>0)) S1 \
-                                                            RIGHT JOIN (SELECT DISHID, INGREDIENTID FROM RECIPE_INGREDIENT WHERE DISHID = {dishid}) S2 ON S1.INGREDIENTID=S2.INGREDIENTID;'
+                                                            RIGHT JOIN (SELECT DISHID, INGREDIENTID FROM recipe_ingredient WHERE DISHID = {dishid}) S2 ON S1.INGREDIENTID=S2.INGREDIENTID;'
 
     cursor.execute(sql_refrige_lookup)
     query_inventory = cursor.fetchall()
