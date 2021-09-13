@@ -6,9 +6,10 @@ from  datetime import datetime as dt
 def deposit_ing(uuid,ing,amount):
 
     connection = pymysql.connect(host='localhost',
-                             user='root',
-                             password='root',
+                             user='spark',
+                             password='1qaz@wsX',
                              database='recipe_db',
+                             port=3306,
                              cursorclass=pymysql.cursors.DictCursor)
     cursor=connection.cursor()
     
